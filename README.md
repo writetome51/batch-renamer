@@ -1,9 +1,9 @@
-# Batch Renamer:  renames batch of items in Finder (files, folders, anything that
-can be renamed).
+# Batch Renamer  
+Renames batch of items in Finder (files, folders, anything that can be renamed).
 
-How to use:
+## How to use
 
-1.  Select items in the Finder.  
+### 1.  Select items in the Finder.  
         (
 		Remember:  Items appear in the renaming queue in the order they are selected.
               So for example, the items you want to rename appear in a Finder window in this order:
@@ -20,4 +20,4 @@ How to use:
 	)
 	
 
-2.  Run the app.
+### 2.  Run the app.

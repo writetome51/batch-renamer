@@ -591,8 +591,10 @@ on getDefaultParameters(userChoice)
 	if userChoice is in {|NS|, |NSACN|, |OA|, |OAACN|} then
 		set params to params & {curN:"", additionalTxt:"", attachBeginOrEnd:""}
 	else if userChoice is |IRC| then
-		set params to params & {listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere:Â
-			"", removeFromWhere:"", removeNum:0, insertTxt:""}
+		set params to params & Â
+			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere: Â
+				"", removeFromWhere:"", removeNum:0, insertTxt:""}
+		
 	else if userChoice is in {|CE|, |APS|} then
 		set params to params & {pfx:"", sfx:"", newExt:""}
 	else if userChoice is |FR| then
