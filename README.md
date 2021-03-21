@@ -16,7 +16,7 @@ Renames batch of items in Finder (files, folders, anything that can be renamed).
 			-  02 image.jpg
 			-  03 essay.doc
 		
-	      So you must select the items in that order, then run the app.
+	      So you must select the items in that order (folder1, image.jpg, essay.doc), then run the app.
 	)
 	
 
