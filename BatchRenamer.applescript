@@ -257,7 +257,7 @@ on renameItems(selectedItems, userChoice, params)
 	--Process each dragged item:
 	repeat with i from 1 to count of selectedItems
 		--Create new name string:
-		set newName to newNameString(LI(i, selectedItems), userChoice, params)
+		set newName to getNewName(LI(i, selectedItems), userChoice, params)
 		set end of newNames to newName
 		--Create new path to item with new name:
 		set pathList to explode((LI(i, selectedItems)), ":")
@@ -313,17 +313,29 @@ on incrementNum(theNum)
 end incrementNum
 
 
-on itemName(itemPath)
+on getList_name_extension(itemPath)
 	set theName to itemNameWithExt(itemPath)
 	set theList to explode(theName, ".")
 	if (count of theList) = 1 then
 		set theExt to ""
 	else
 		set theExt to "." & (LI(-1, theList) as text)
-		set theName to replace(theExt, "", theName) --removes extension from theName
+		set theName to LI({1, -2}, theList) as text
 	end if
 	return {theName, theExt}
-end itemName
+end getList_name_extension
+
+
+on getTail(numChars, str)
+	set lst to every text item of str
+	return LI({-numChars, -1}, lst) as text
+end getTail
+
+
+on getHead(numChars, str)
+	set lst to every text item of str
+	return LI({1, numChars}, lst) as text
+end getHead
 
 
 
@@ -479,132 +491,153 @@ on renameAll(theItems, theNames)
 end renameAll
 
 
-on newNameString(theItem, userChoice, params)
-	set {theName, theExt} to itemName(theItem)
+
+on getNewName(itemPath, userChoice, params)
+	set {theName, theExt} to getList_name_extension(itemPath)
 	
 	if userChoice is |FR| then
-		if params's caseBool is "Yes" then
-			considering case
-				set newName to replace(params's searchString, params's replaceString, theName)
-			end considering
-		else
-			set newName to replace(params's searchString, params's replaceString, theName)
-		end if
+		set newName to getNewName_FR(params, theName)
 		
 	else if userChoice is |NS| then
-		set newName to (params's curN & params's additionalTxt)
-		set params's curN to incrementNum(params's curN)
+		set newName to getNewName_NS(params)
 		
 	else if userChoice is |NSACN| then
-		if params's attachBeginOrEnd is "Beginning" then -- Then place the number at beginning of name.
-			set newName to (params's curN) & (params's additionalTxt) & theName
-		else -- Then place the number at end of name, with the additionalTxt coming just before it.
-			set newName to (theName & (params's additionalTxt) & (params's curN))
-		end if
-		set params's curN to incrementNum(params's curN)
+		set newName to getNewName_NSACN(params, theName)
 		
 	else if userChoice is |OA| then
-		set newName to (params's curN & params's additionalTxt)
-		set params's curN to incrementAlphabet(params's curN)
+		set newName to getNewName_OA(params)
 		
 	else if userChoice is |OAACN| then
-		if params's attachBeginOrEnd is "Beginning" then -- Then place the number at beginning of name.
-			set newName to (params's curN) & (params's additionalTxt) & theName
-		else -- Then place the number at end of name, with the additionalTxt coming just before it.
-			set newName to theName & (params's additionalTxt) & (params's curN)
-		end if
-		set params's curN to incrementAlphabet(params's curN)
+		set newName to getNewName_OAACN(params, theName)
 		
 	else if userChoice is |APS| then
 		set newName to (params's pfx & theName & params's sfx)
 		
-		
 	else if userChoice is |IRC| then
-		if params's listChoice is "Remove" then
-			set params's removeNum to params's origRemoveNum
-			set {x, params's removeNum} to Â
-				{(params's removeStartPosition), ((params's removeNum) - 1)}
-			
-			--If x is too many characters in from left or right, skip this item:
-			if (x > (count of theName)) or ((params's removeNum) ³ (count of theName)) then return
-			
-			if (params's removeFromWhere is |RIGHT|) then set {x, params's removeNum} Â
-				to {-(params's removeStartPosition), -(params's removeNum)}
-			set y to (x + (params's removeNum))
-			--set removalText to (characters x thru y of theName as text)
-			set nameChars to every text item of theName
-			if params's removeFromWhere is |LEFT| then
-				--If the removeStartPosition is not at beginning of name, save first part of name:
-				if x > 1 then
-					set firstPart to implode(LI({1, (x - 1)}, nameChars), "")
-				else
-					set firstPart to ""
-				end if
-				--Set x to the first char that comes after the section of theName to be removed:
-				set x to (y + 1)
-				--If x now exceeds the number of chars in theName, this means the user wanted to trim 
-				--off the last character(s) of theName:
-				if x > (count of theName) then
-					set newName to firstPart
-				else
-					set newName to (firstPart & (LI({x, -1}, nameChars) as text))
-				end if
+		set newName to getNewName_IRC(params, theName)
+	end if
+	
+	if userChoice is |CE| then return getNewName_CE(params, theName)
+	
+	return (|UNIQUESTRING| & newName & theExt)
+end getNewName
+
+
+on getNewName_OA(params)
+	set newName to (params's curN & params's additionalTxt)
+	set params's curN to incrementAlphabet(params's curN)
+	return newName
+end getNewName_OA
+
+
+on getNewName_OAACN(params, oldName)
+	if params's attachBeginOrEnd is "Beginning" then -- Then place the number at beginning of name.
+		set newName to (params's curN) & (params's additionalTxt) & oldName
+	else -- Then place the number at end of name, with the additionalTxt coming just before it.
+		set newName to oldName & (params's additionalTxt) & (params's curN)
+	end if
+	set params's curN to incrementAlphabet(params's curN)
+	return newName
+end getNewName_OAACN
+
+
+on getNewName_NS(params)
+	set newName to (params's curN & params's additionalTxt)
+	set params's curN to incrementNum(params's curN)
+	return newName
+end getNewName_NS
+
+
+on getNewName_NSACN(params, oldName)
+	if params's attachBeginOrEnd is "Beginning" then -- Then place the number at beginning of name.
+		set newName to (params's curN) & (params's additionalTxt) & oldName
+	else -- Then place the number at end of name, with the additionalTxt coming just before it.
+		set newName to (oldName & (params's additionalTxt) & (params's curN))
+	end if
+	set params's curN to incrementNum(params's curN)
+	return newName
+end getNewName_NSACN
+
+
+on getNewName_CE(params, oldName)
+	return (|UNIQUESTRING| & oldName & "." & params's newExt)
+end getNewName_CE
+
+
+on getNewName_FR(params, oldName)
+	if params's caseBool is "Yes" then
+		considering case
+			return replace(params's searchString, params's replaceString, oldName)
+		end considering
+	else
+		return replace(params's searchString, params's replaceString, oldName)
+	end if
+end getNewName_FR
+
+
+
+on getNewName_IRC(params, oldName)
+	if params's listChoice is "Remove" then
+		set params's removeNum to params's origRemoveNum
+		set oldNameLength to count of oldName
+		
+		if (params's removeStartPosition > oldNameLength) or Â
+			((params's removeNum) > oldNameLength) then return oldName
+		
+		set endPosition to ((params's removeStartPosition) + (params's removeNum)) - 1
+		
+		if params's removeFromWhere is |RIGHT| then Â
+			set oldName to reverse of every text item of oldName as text
+		
+		--If the removeStartPosition is not at beginning of name, save first part of name:
+		if params's removeStartPosition > 1 then
+			set firstPart to getHead((params's removeStartPosition) - 1, oldName)
+		else
+			set firstPart to ""
+		end if
+		
+		--If (endPosition + 1) now exceeds the number of chars in oldName, this means the user wanted to trim 
+		--off the end of oldName:
+		if (endPosition + 1) > oldNameLength then
+			set newName to firstPart
+		else
+			set newName to (firstPart & (getTail(oldNameLength - endPosition, oldName)))
+		end if
+		if params's removeFromWhere is |RIGHT| then Â
+			set newName to reverse of every text item of newName as text
+		
+		return newName
+		
+	else if params's listChoice is "Insert" then
+		set x to (params's insertStartPosition)
+		if params's insertFromWhere is |LEFT| then
+			if x > (count of oldName) then set {x, params's insertFromWhere} to {-1, |RIGHT|}
+			if x > 1 then
+				return (((characters 1 thru (x - 1) of oldName as text) & Â
+					params's insertTxt & characters x thru -1 of oldName as text))
 			else
-				--If the removeStartPosition is not at end of name, save last part of name:
-				if x < -1 then
-					set lastPart to implode(LI({-1, (x + 1)}, nameChars), "")
-				else
-					set lastPart to ""
-				end if
-				--Set x to the first char that comes before the section of theName to be removed:
-				set x to (y - 1)
-				--If positive x now exceeds length of theName, this means the user wanted to trim 
-				--off the first character(s) of theName:
-				if (-(x) > (count of theName)) then
-					set newName to lastPart
-				else
-					set newName to ((LI({1, x}, nameChars) as text) & lastPart)
-				end if
+				return (params's insertTxt & (characters x thru -1 of oldName as text))
 			end if
-			
-		else if params's listChoice is "Insert" then
-			set x to (params's insertStartPosition)
-			if params's insertFromWhere is |LEFT| then
-				if x > (count of theName) then set {x, params's insertFromWhere} to {-1, |RIGHT|}
-				if x > 1 then
-					set newName to (((characters 1 thru (x - 1) of theName as text) & Â
-						params's insertTxt & characters x thru -1 of theName as text))
-				else
-					set newName to (params's insertTxt & (characters x thru -1 of theName as text))
-				end if
-			end if
-			if params's insertFromWhere is |RIGHT| then
-				if (x > 0) then set x to -(params's insertStartPosition)
-				if x < -1 then
-					set newName to (characters 1 thru x of theName as text) & params's insertTxt & Â
-						(characters (x + 1) thru -1 of theName as text)
-				else
-					set newName to (theName & params's insertTxt)
-				end if
+		end if
+		if params's insertFromWhere is |RIGHT| then
+			if (x > 0) then set x to -(params's insertStartPosition)
+			if x < -1 then
+				return (characters 1 thru x of oldName as text) & params's insertTxt & Â
+					(characters (x + 1) thru -1 of oldName as text)
+			else
+				return (oldName & params's insertTxt)
 			end if
 		end if
 	end if
-	
-	
-	if userChoice is |CE| then
-		set newName to (|UNIQUESTRING| & theName & "." & params's newExt)
-	else --If it's any of the other choices:
-		set newName to (|UNIQUESTRING| & newName & theExt)
-	end if
-	
-	return newName
-end newNameString
+end getNewName_IRC
 
 
 on getDefaultParameters(userChoice)
 	set params to {origRemoveNum:0}
+	
 	if userChoice is in {|NS|, |NSACN|, |OA|, |OAACN|} then
 		set params to params & {curN:"", additionalTxt:"", attachBeginOrEnd:""}
+		
 	else if userChoice is |IRC| then
 		set params to params & Â
 			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere:Â
@@ -612,6 +645,7 @@ on getDefaultParameters(userChoice)
 		
 	else if userChoice is in {|CE|, |APS|} then
 		set params to params & {pfx:"", sfx:"", newExt:""}
+		
 	else if userChoice is |FR| then
 		set params to params & {caseBool:"", searchString:"", replaceString:""}
 	end if
