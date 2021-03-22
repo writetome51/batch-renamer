@@ -1,5 +1,3 @@
-get reverse of every text item of "abcdefg" as text
-
 
 on getTail(numChars, str)
 	set lst to every text item of str

@@ -3,6 +3,7 @@ BatchRenamer,  Copyright © 2021 - 2030 by Steve Thompson.
 All Rights Reserved.  Thou shalt not steal.
 
 Renames batch of items in Finder (anything that can be renamed).
+This script can be saved as an application, or be run as is.
 
 How to use:
 
@@ -197,7 +198,7 @@ on setInsertRemoveParams(params)
 		set params's removeFromWhere to getStartingFromWhereChoice(params's listChoice)
 		set params's removeStartPosition to getStartPosition()
 		
-		set params's origRemoveNum to text returned of Â
+		set params's removeNum to text returned of Â
 			dialog("", "Enter the number of characters to remove:", |CANCEL_PROCEED|) as integer
 		
 	else if params's listChoice is |INSERT| then
@@ -578,7 +579,6 @@ end getNewName_FR
 
 on getNewName_IRC(params, oldName)
 	if params's listChoice is "Remove" then
-		set params's removeNum to params's origRemoveNum
 		set oldNameLength to count of oldName
 		
 		if (params's removeStartPosition > oldNameLength) or Â
@@ -596,8 +596,8 @@ on getNewName_IRC(params, oldName)
 			set firstPart to ""
 		end if
 		
-		--If (endPosition + 1) now exceeds the number of chars in oldName, this means the user wanted to trim 
-		--off the end of oldName:
+		--If (endPosition + 1) exceeds the number of chars in oldName, this means 
+		--the user wanted to trim off the end of oldName:
 		if (endPosition + 1) > oldNameLength then
 			set newName to firstPart
 		else
@@ -633,7 +633,7 @@ end getNewName_IRC
 
 
 on getDefaultParameters(userChoice)
-	set params to {origRemoveNum:0}
+	set params to {}
 	
 	if userChoice is in {|NS|, |NSACN|, |OA|, |OAACN|} then
 		set params to params & {curN:"", additionalTxt:"", attachBeginOrEnd:""}
