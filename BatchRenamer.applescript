@@ -8,7 +8,8 @@ How to use:
 
 1.  Select items in the Finder.  
    	  (Remember:  Items appear in the renaming queue in the order they are selected.
-              So for example, the items you want to rename are appearing in a Finder window in this order:
+              So for example, the items you want to rename are appearing in a Finder window 
+			  in this order:
 	 		-  image.jpg
 			-  essay.doc
 			-  folder1
@@ -18,7 +19,8 @@ How to use:
 			-  02 image.jpg
 			-  03 essay.doc
 		
-	      So you must select the items in that order (folder1, image.jpg, essay.doc), then run the app.
+	      So you must select the items in that order (folder1, image.jpg, essay.doc), then 
+		  run the app.
 	  )
 
 2.  Run app.
@@ -27,17 +29,24 @@ How to use:
 
 --static globals
 property params : {}
-property uniqueString : "ø&ø*ø#ø%ø"
+
 
 --global constants
-global |FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE| -- initial choices
+
+-- initial choices
+global |FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|
 global |MAIN_CHOICES| -- list containing initial choices.
+
 global |INSERT|, |REMOVE| -- 2 choices
 global |INSERT_REMOVE| -- list containing 2 choices
+
 global |LEFT|, |RIGHT|
 global |LEFT_RIGHT|
+
 global |PROCEED|
 global |CANCEL_PROCEED|
+
+global |UNIQUESTRING|
 
 
 --Handler runs when app is double-clicked:
@@ -81,20 +90,24 @@ end mainRoutine
 on setGlobalConstants()
 	--The only option that affects the name extension is "Change Extension".
 	set {|FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|} to Â
-		{"Find and Replace", "Number Sequentially", "Number Sequentially, attach to current name", Â
-			"Order Alphabetically", "Order Alphabetically, attach to current name", Â
-			"Add Prefix/Suffix", "Insert/Remove Characters", "Change Extension", "Capitalize", Â
-			"Change Case"}
+		{"Find and Replace", "Number Sequentially", Â
+			"Number Sequentially, attach to current name", "Order Alphabetically", Â
+			"Order Alphabetically, attach to current name", "Add Prefix/Suffix", Â
+			"Insert/Remove Characters", "Change Extension", "Capitalize", "Change Case"}
 	
 	set |MAIN_CHOICES| to Â
 		{|FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|}
 	
 	set {|INSERT|, |REMOVE|} to {"Insert", "Remove"}
 	set |INSERT_REMOVE| to {|INSERT|, |REMOVE|}
+	
 	set {|LEFT|, |RIGHT|} to {"The Left", "The Right"}
 	set |LEFT_RIGHT| to {|LEFT|, |RIGHT|}
+	
 	set |PROCEED| to "Proceed"
 	set |CANCEL_PROCEED| to {"Cancel", |PROCEED|}
+	
+	set |UNIQUESTRING| to "ø&ø*ø#ø%ø"
 end setGlobalConstants
 
 
@@ -191,7 +204,8 @@ on setInsertRemoveParams(params)
 		set params's insertFromWhere to getStartingFromWhereChoice(params's listChoice)
 		set params's insertStartPosition to getStartPosition()
 		
-		set params's insertTxt to text returned of dialog("", "Enter the text to insert:", |CANCEL_PROCEED|)
+		set params's insertTxt to text returned of Â
+			dialog("", "Enter the text to insert:", |CANCEL_PROCEED|)
 	end if
 	
 	return params
@@ -200,7 +214,8 @@ end setInsertRemoveParams
 
 on setOrderAlphabeticallyParams(params, userChoice)
 	set params's curN to text returned of dialog("aaa", Â
-		"Enter a starting letter combo, including total number of characters desired:", |CANCEL_PROCEED|)
+		"Enter a starting letter combo, including total number of characters desired:", Â
+		|CANCEL_PROCEED|)
 	if userChoice is |OAACN| then
 		set params's attachBeginOrEnd to button returned of dialog(0, Â
 			"Attach at beginning or end of current name?", {"Cancel", "End", "Beginning"})
@@ -225,7 +240,8 @@ end getStartingFromWhereChoice
 
 
 on getStartPosition()
-	return text returned of dialog("1", "Enter the starting position:", |CANCEL_PROCEED|) as integer
+	return text returned of Â
+		dialog("1", "Enter the starting position:", |CANCEL_PROCEED|) as integer
 end getStartPosition
 
 
@@ -256,7 +272,8 @@ on renameItems(selectedItems, userChoice, params)
 			set previewString to previewString & "and so on...."
 			exit repeat
 		end if
-		set previewString to previewString & replace(uniqueString, "", LI(i, newNames)) & return
+		set previewString to Â
+			previewString & replace(|UNIQUESTRING|, "", LI(i, newNames)) & return
 		set i to (i + 1)
 	end repeat
 	--Show the user a preview of the new names:
@@ -310,16 +327,11 @@ end itemName
 
 
 
-
-
-
 --Replaces searchString with replaceString inside theString:
 on replace(searchString, replaceString, theString)
 	set item_list to explode(theString, searchString)
-	set theResult to implode(item_list, replaceString)
-	return theResult -- returns a new, modified string.
+	return implode(item_list, replaceString)
 end replace
-
 
 
 -- This function separates pieces of a string into list items, using theDelimit
@@ -438,10 +450,12 @@ end listChoice
 
 on removeUniqueStrings(renamedItems)
 	repeat with i from 1 to (count of renamedItems)
-		set theName to LI(-1, explode(LI(i, renamedItems) as string, ":")) --extracts item name from path.
+		set theName to Â
+			LI(-1, explode(LI(i, renamedItems) as string, ":")) --extracts item name from path.
+		
 		--if theName is "" then the item is a folder and the path must have ended with a colon:
 		if theName is "" then set theName to LI(-2, explode(LI(i, renamedItems) as string, ":"))
-		set newName to replace(uniqueString, "", theName) --removes uniqueString.
+		set newName to replace(|UNIQUESTRING|, "", theName) --removes |UNIQUESTRING|.
 		tell application "System Events" to set name of item (my LI(i, renamedItems)) to newName
 	end repeat
 end removeUniqueStrings
@@ -508,8 +522,9 @@ on newNameString(theItem, userChoice, params)
 	else if userChoice is |IRC| then
 		if params's listChoice is "Remove" then
 			set params's removeNum to params's origRemoveNum
-			set {x, params's removeNum} to {(params's removeStartPosition), ((params's removeNum) - 1)}
-			--if theItem is "Macintosh HD:Applications:AppleScript:Applications:BatchRenamer project:0020.scpt" then return params's removeNum
+			set {x, params's removeNum} to Â
+				{(params's removeStartPosition), ((params's removeNum) - 1)}
+			
 			--If x is too many characters in from left or right, skip this item:
 			if (x > (count of theName)) or ((params's removeNum) ³ (count of theName)) then return
 			
@@ -532,7 +547,7 @@ on newNameString(theItem, userChoice, params)
 				if x > (count of theName) then
 					set newName to firstPart
 				else
-					set newName to (firstPart & (LI({x, -1}, nameChars) as text)) --(replace(removalText, "", theName))
+					set newName to (firstPart & (LI({x, -1}, nameChars) as text))
 				end if
 			else
 				--If the removeStartPosition is not at end of name, save last part of name:
@@ -577,9 +592,9 @@ on newNameString(theItem, userChoice, params)
 	
 	
 	if userChoice is |CE| then
-		set newName to (uniqueString & theName & "." & params's newExt)
+		set newName to (|UNIQUESTRING| & theName & "." & params's newExt)
 	else --If it's any of the other choices:
-		set newName to (uniqueString & newName & theExt)
+		set newName to (|UNIQUESTRING| & newName & theExt)
 	end if
 	
 	return newName
@@ -592,7 +607,7 @@ on getDefaultParameters(userChoice)
 		set params to params & {curN:"", additionalTxt:"", attachBeginOrEnd:""}
 	else if userChoice is |IRC| then
 		set params to params & Â
-			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere: Â
+			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere:Â
 				"", removeFromWhere:"", removeNum:0, insertTxt:""}
 		
 	else if userChoice is in {|CE|, |APS|} then
