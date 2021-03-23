@@ -25,3 +25,23 @@ end LI
 
 
 
+on setOrderAlphabeticallyParams(params, userChoice)
+	set params's curN to text returned of dialogWithTextInput("aaa", Â
+		"Enter a starting letter combo, including total number of characters desired:", Â
+		|CANCEL_PROCEED|)
+	if userChoice is |OAACN| then
+		set params's attachBeginOrEnd to button returned of Â
+			dialogWithButtons("Attach at beginning or end of current name?", Â
+				{"Cancel", "End", "Beginning"})
+	end if
+	if userChoice is |OA| or params's attachBeginOrEnd is "Beginning" then
+		set befOrAft to "after"
+	else
+		set befOrAft to "before"
+	end if
+	set params's additionalTxt to text returned of dialogWithTextInput("", Â
+		"Enter any additional text you want placed " & befOrAft & " the letters:", Â
+		|CANCEL_PROCEED|)
+	
+	return params
+end setOrderAlphabeticallyParams
