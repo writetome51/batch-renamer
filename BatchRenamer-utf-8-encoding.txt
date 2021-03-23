@@ -1,5 +1,5 @@
 (*********************************
-BatchRenamer,  Copyright © 2021 - 2030 by Steve Thompson.
+BatchRenamer,  Copyright Â© 2021 - 2030 by Steve Thompson.
 All Rights Reserved.  Thou shalt not steal.
 
 Renames batch of items in Mac Finder (anything that can be renamed).  
@@ -55,9 +55,9 @@ on run
 	
 	tell application "Finder" to set selectedItemPaths to selection
 	
-	if selectedItemPaths's length = 0 then return (display dialog Â
-		"Items must be selected in the Finder window before launching me." & Â
-		return & return & "I'm going to quit now. Bye." with title Â
+	if selectedItemPaths's length = 0 then return (display dialog Â¬
+		"Items must be selected in the Finder window before launching me." & Â¬
+		return & return & "I'm going to quit now. Bye." with title Â¬
 		"BatchRenamer" buttons {"OK"} default button 1 giving up after 5)
 	
 	mainRoutine(selectedItemPaths)
@@ -71,12 +71,12 @@ on mainRoutine(itemPaths)
 		repeat
 			set params to {}
 			
-			set choice to Â
+			set choice to Â¬
 				listChoice(|MAIN_CHOICES|, "What To Do With These Names?", |PROCEED|)
 			
 			set params to getAdditionalChoices(choice)
 			
-			set {newNames, newPaths} to Â
+			set {newNames, newPaths} to Â¬
 				get_newNames_newPaths(itemPaths, choice, params)
 			
 			if userApproves(newNames) then
@@ -93,13 +93,13 @@ end mainRoutine
 
 on setGlobalConstants()
 	--The only option that affects the name extension is "Change Extension".
-	set {|FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|} to Â
-		{"Find and Replace", "Number Sequentially", Â
-			"Number Sequentially, attach to current name", "Order Alphabetically", Â
-			"Order Alphabetically, attach to current name", "Add Prefix/Suffix", Â
+	set {|FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|} to Â¬
+		{"Find and Replace", "Number Sequentially", Â¬
+			"Number Sequentially, attach to current name", "Order Alphabetically", Â¬
+			"Order Alphabetically, attach to current name", "Add Prefix/Suffix", Â¬
 			"Insert/Remove Characters", "Change Extension", "Capitalize", "Change Case"}
 	
-	set |MAIN_CHOICES| to Â
+	set |MAIN_CHOICES| to Â¬
 		{|FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|}
 	
 	set {|INSERT|, |REMOVE|} to {"Insert", "Remove"}
@@ -112,7 +112,7 @@ on setGlobalConstants()
 	set |CANCEL_PROCEED| to {"Cancel", |PROCEED|}
 	set |GO_BACK| to "No, Go Back"
 	
-	set |UNIQUESTRING| to "ø&ø*ø#ø%ø"
+	set |UNIQUESTRING| to "Â¯&Â¯*Â¯#Â¯%Â¯"
 end setGlobalConstants
 
 
@@ -133,7 +133,7 @@ on getAdditionalChoices(userChoice)
 		set params to setInsertRemoveParams(params)
 		
 	else if userChoice is |CE| then
-		set params's newExt to text returned of Â
+		set params's newExt to text returned of Â¬
 			dialogWithTextInput("", "Enter the new extension:", |CANCEL_PROCEED|)
 		
 	else if userChoice is in {|OA|, |OAACN|} then
@@ -148,8 +148,8 @@ end getAdditionalChoices
 on userApproves(newNames)
 	set previewString to getPreviewString(newNames)
 	--Show the user a preview of the new names:
-	set theResult to Â
-		dialogWithButtons("Is this what you wanted?" & return & return & previewString, Â
+	set theResult to Â¬
+		dialogWithButtons("Is this what you wanted?" & return & return & previewString, Â¬
 			{"Cancel", |GO_BACK|, "Yes"})
 	if button returned of theResult is "Cancel" then
 		error "User cancelled"
@@ -179,13 +179,13 @@ end getPreviewString
 
 
 on setFindReplaceParams(params)
-	set params's caseBool to button returned of Â
+	set params's caseBool to button returned of Â¬
 		dialogWithButtons("Should the Find and Replace be case-sensitive?", {"Cancel", "Yes", "No"})
 	if params's caseBool is "Cancel" then error "Error"
 	
-	set params's searchString to text returned of Â
+	set params's searchString to text returned of Â¬
 		dialogWithTextInput("", "Enter the text to find:", |CANCEL_PROCEED|)
-	set params's replaceString to text returned of Â
+	set params's replaceString to text returned of Â¬
 		dialogWithTextInput("", "Enter the text to replace it with:", |CANCEL_PROCEED|)
 	
 	return params
@@ -193,11 +193,11 @@ end setFindReplaceParams
 
 
 on setNumberSequentiallyParams(params, userChoice)
-	set params's curN to text returned of Â
+	set params's curN to text returned of Â¬
 		dialogWithTextInput("001", "Enter a starting number:", |CANCEL_PROCEED|)
 	if userChoice is |NSACN| then
-		set params's attachBeginOrEnd to button returned of Â
-			dialogWithButtons("Attach at beginning or end of current name?", Â
+		set params's attachBeginOrEnd to button returned of Â¬
+			dialogWithButtons("Attach at beginning or end of current name?", Â¬
 				{"Cancel", "End", "Beginning"})
 	end if
 	if userChoice is |NS| or params's attachBeginOrEnd is "Beginning" then
@@ -205,8 +205,8 @@ on setNumberSequentiallyParams(params, userChoice)
 	else
 		set befOrAft to "before"
 	end if
-	set params's additionalTxt to text returned of dialogWithTextInput("", Â
-		"Enter any additional text you want placed " & befOrAft & " the number:", Â
+	set params's additionalTxt to text returned of dialogWithTextInput("", Â¬
+		"Enter any additional text you want placed " & befOrAft & " the number:", Â¬
 		|CANCEL_PROCEED|)
 	
 	return params
@@ -214,7 +214,7 @@ end setNumberSequentiallyParams
 
 
 on setAddPrefixSuffixParams(params)
-	set listChoice to listChoice({"Prefix", "Suffix", "Both"}, Â
+	set listChoice to listChoice({"Prefix", "Suffix", "Both"}, Â¬
 		"Add a Prefix, Suffix, or Both?", |PROCEED|)
 	if listChoice is "Both" or listChoice is "Prefix" then
 		set params's pfx to text returned of dialogWithTextInput("", "Enter the Prefix:", |CANCEL_PROCEED|)
@@ -229,22 +229,22 @@ end setAddPrefixSuffixParams
 
 on setInsertRemoveParams(params)
 	
-	set params's listChoice to Â
+	set params's listChoice to Â¬
 		listChoice(|INSERT_REMOVE|, (|INSERT| & " or " & |REMOVE| & " Text?"), |PROCEED|)
 	
 	if params's listChoice is |REMOVE| then
 		set params's removeFromWhere to getStartingFromWhereChoice(params's listChoice)
 		set params's removeStartPosition to getStartPosition()
 		
-		set params's removeNum to text returned of Â
-			dialogWithTextInput("", "Enter the number of characters to remove:", |CANCEL_PROCEED|) Â
+		set params's removeNum to text returned of Â¬
+			dialogWithTextInput("", "Enter the number of characters to remove:", |CANCEL_PROCEED|) Â¬
 				as integer
 		
 	else if params's listChoice is |INSERT| then
 		set params's insertFromWhere to getStartingFromWhereChoice(params's listChoice)
 		set params's insertStartPosition to getStartPosition()
 		
-		set params's insertTxt to text returned of Â
+		set params's insertTxt to text returned of Â¬
 			dialogWithTextInput("", "Enter the text to insert:", |CANCEL_PROCEED|)
 	end if
 	
@@ -253,12 +253,12 @@ end setInsertRemoveParams
 
 
 on setOrderAlphabeticallyParams(params, userChoice)
-	set params's curN to text returned of dialogWithTextInput("aaa", Â
-		"Enter a starting letter combo, including total number of characters desired:", Â
+	set params's curN to text returned of dialogWithTextInput("aaa", Â¬
+		"Enter a starting letter combo, including total number of characters desired:", Â¬
 		|CANCEL_PROCEED|)
 	if userChoice is |OAACN| then
-		set params's attachBeginOrEnd to button returned of Â
-			dialogWithButtons("Attach at beginning or end of current name?", Â
+		set params's attachBeginOrEnd to button returned of Â¬
+			dialogWithButtons("Attach at beginning or end of current name?", Â¬
 				{"Cancel", "End", "Beginning"})
 	end if
 	if userChoice is |OA| or params's attachBeginOrEnd is "Beginning" then
@@ -266,8 +266,8 @@ on setOrderAlphabeticallyParams(params, userChoice)
 	else
 		set befOrAft to "before"
 	end if
-	set params's additionalTxt to text returned of dialogWithTextInput("", Â
-		"Enter any additional text you want placed " & befOrAft & " the letters:", Â
+	set params's additionalTxt to text returned of dialogWithTextInput("", Â¬
+		"Enter any additional text you want placed " & befOrAft & " the letters:", Â¬
 		|CANCEL_PROCEED|)
 	
 	return params
@@ -281,7 +281,7 @@ end getStartingFromWhereChoice
 
 
 on getStartPosition()
-	return text returned of Â
+	return text returned of Â¬
 		dialogWithTextInput("1", "Enter the starting position:", |CANCEL_PROCEED|) as integer
 end getStartPosition
 
@@ -399,7 +399,7 @@ on LI(itemNum, theList)
 	if class of itemNum is integer then
 		return (item itemNum of theList)
 	else if class of itemNum is list then
-		return (items (item 1 of itemNum as integer) thru Â
+		return (items (item 1 of itemNum as integer) thru Â¬
 			(item 2 of itemNum as integer) of theList)
 	end if
 end LI
@@ -468,7 +468,7 @@ end incrementAlphabet
 on dialogWithTextInput(defaultTxt, theMessage, theButtons)
 	set lastButton to count of theButtons
 	
-	return display dialog theMessage with title "BatchRenamer" default answer Â
+	return display dialog theMessage with title "BatchRenamer" default answer Â¬
 		defaultTxt buttons theButtons default button lastButton
 end dialogWithTextInput
 
@@ -476,13 +476,13 @@ end dialogWithTextInput
 on dialogWithButtons(theMessage, theButtons)
 	set lastButton to count of theButtons
 	
-	return display dialog theMessage with title "BatchRenamer" buttons theButtons Â
+	return display dialog theMessage with title "BatchRenamer" buttons theButtons Â¬
 		default button lastButton
 end dialogWithButtons
 
 
 on listChoice(theList, thePrompt, okButton)
-	return (choose from list theList with title Â
+	return (choose from list theList with title Â¬
 		"BatchRenamer" with prompt thePrompt OK button name okButton) as text
 end listChoice
 
@@ -493,7 +493,7 @@ on removeUniqueStrings(renamedItemPaths)
 		set theName to getNameFromPath(LI(i, renamedItemPaths))
 		set newName to replace(|UNIQUESTRING|, "", theName)
 		
-		tell application "System Events" to Â
+		tell application "System Events" to Â¬
 			set name of item (my LI(i, renamedItemPaths)) to newName
 	end repeat
 end removeUniqueStrings
@@ -510,7 +510,7 @@ end getNameFromPath
 
 on renameAll(itemPaths, newNames, renamedPaths)
 	repeat with i from 1 to count of itemPaths
-		tell application "System Events" to set name of item Â
+		tell application "System Events" to set name of item Â¬
 			(my LI(i, itemPaths)) to my LI(i, newNames)
 	end repeat
 	
@@ -519,7 +519,7 @@ on renameAll(itemPaths, newNames, renamedPaths)
 		set theName to getNameFromPath(LI(i, renamedPaths))
 		set newName to replace(|UNIQUESTRING|, "", theName)
 		
-		tell application "System Events" to Â
+		tell application "System Events" to Â¬
 			set name of item (my LI(i, renamedPaths)) to newName
 	end repeat
 end renameAll
@@ -614,12 +614,12 @@ on getNewName_IRC(params, oldName)
 	if params's listChoice is "Remove" then
 		set oldNameLength to count of oldName
 		
-		if (params's removeStartPosition > oldNameLength) or Â
+		if (params's removeStartPosition > oldNameLength) or Â¬
 			((params's removeNum) > oldNameLength) then return oldName
 		
 		set endPosition to ((params's removeStartPosition) + (params's removeNum)) - 1
 		
-		if params's removeFromWhere is |RIGHT| then Â
+		if params's removeFromWhere is |RIGHT| then Â¬
 			set oldName to reverse of every text item of oldName as text
 		
 		--If the removeStartPosition is not at beginning of name, save first part of name:
@@ -636,7 +636,7 @@ on getNewName_IRC(params, oldName)
 		else
 			set newName to (firstPart & (getTail(oldNameLength - endPosition, oldName)))
 		end if
-		if params's removeFromWhere is |RIGHT| then Â
+		if params's removeFromWhere is |RIGHT| then Â¬
 			set newName to reverse of every text item of newName as text
 		
 		return newName
@@ -646,7 +646,7 @@ on getNewName_IRC(params, oldName)
 		if params's insertFromWhere is |LEFT| then
 			if x > (count of oldName) then set {x, params's insertFromWhere} to {-1, |RIGHT|}
 			if x > 1 then
-				return (((characters 1 thru (x - 1) of oldName as text) & Â
+				return (((characters 1 thru (x - 1) of oldName as text) & Â¬
 					params's insertTxt & characters x thru -1 of oldName as text))
 			else
 				return (params's insertTxt & (characters x thru -1 of oldName as text))
@@ -655,7 +655,7 @@ on getNewName_IRC(params, oldName)
 		if params's insertFromWhere is |RIGHT| then
 			if (x > 0) then set x to -(params's insertStartPosition)
 			if x < -1 then
-				return (characters 1 thru x of oldName as text) & params's insertTxt & Â
+				return (characters 1 thru x of oldName as text) & params's insertTxt & Â¬
 					(characters (x + 1) thru -1 of oldName as text)
 			else
 				return (oldName & params's insertTxt)
@@ -672,8 +672,8 @@ on getDefaultParameters(userChoice)
 		set params to params & {curN:"", additionalTxt:"", attachBeginOrEnd:""}
 		
 	else if userChoice is |IRC| then
-		set params to params & Â
-			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere:Â
+		set params to params & Â¬
+			{listChoice:"", insertStartPosition:0, removeStartPosition:0, insertFromWhere:Â¬
 				"", removeFromWhere:"", removeNum:0, insertTxt:""}
 		
 	else if userChoice is in {|CE|, |APS|} then
