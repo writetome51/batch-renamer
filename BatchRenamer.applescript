@@ -46,6 +46,7 @@ global |LEFT_RIGHT|
 
 global |PROCEED|
 global |CANCEL_PROCEED|
+global |GO_BACK|
 
 global |UNIQUESTRING|
 
@@ -53,33 +54,36 @@ global |UNIQUESTRING|
 --Handler runs when app is double-clicked:
 on run
 	
-	tell application "Finder" to set selectedItems to selection
+	tell application "Finder" to set selectedItemPaths to selection
 	
-	if selectedItems's length = 0 then return (display dialog Â
+	if selectedItemPaths's length = 0 then return (display dialog Â
 		"Items must be selected in the Finder window before launching me." & Â
 		return & return & "I'm going to quit now. Bye." with title Â
 		"BatchRenamer" buttons {"OK"} default button 1 giving up after 5)
 	
-	mainRoutine(selectedItems)
+	mainRoutine(selectedItemPaths)
 end run
 
 
-on mainRoutine(selectedItems)
+on mainRoutine(itemPaths)
 	try
 		setGlobalConstants()
 		
-		repeat -- until renameItems() returns true
+		repeat
 			set params to {}
 			
-			-- Make main choice:
 			set choice to Â
-				listChoice(|MAIN_CHOICES|, "What Shall I Do With These Names?", |PROCEED|)
+				listChoice(|MAIN_CHOICES|, "What To Do With These Names?", |PROCEED|)
 			
-			--Present a set of additional choices based on what user has chosen already:
-			set renameParams to getRenameParameters(choice)
+			set params to getAdditionalChoices(choice)
 			
-			--Now rename each item.
-			if renameItems(selectedItems, choice, renameParams) is true then exit repeat
+			set {newNames, newPaths} to Â
+				get_newNames_newPaths(itemPaths, choice, params)
+			
+			if userApproves(newNames) then
+				renameAll(itemPaths, newNames, newPaths)
+				exit repeat
+			end if
 		end repeat
 		
 	on error
@@ -107,12 +111,13 @@ on setGlobalConstants()
 	
 	set |PROCEED| to "Proceed"
 	set |CANCEL_PROCEED| to {"Cancel", |PROCEED|}
+	set |GO_BACK| to "No, Go Back"
 	
 	set |UNIQUESTRING| to "ø&ø*ø#ø%ø"
 end setGlobalConstants
 
 
-on getRenameParameters(userChoice)
+on getAdditionalChoices(userChoice)
 	
 	set params to getDefaultParameters(userChoice)
 	
@@ -130,7 +135,7 @@ on getRenameParameters(userChoice)
 		
 	else if userChoice is |CE| then
 		set params's newExt to text returned of Â
-			dialog("", "Enter the new extension:", |CANCEL_PROCEED|)
+			dialogWithTextInput("", "Enter the new extension:", |CANCEL_PROCEED|)
 		
 	else if userChoice is in {|OA|, |OAACN|} then
 		set params to setOrderAlphabeticallyParams(params, userChoice)
@@ -138,18 +143,51 @@ on getRenameParameters(userChoice)
 	end if
 	
 	return params
-end getRenameParameters
+end getAdditionalChoices
+
+
+on userApproves(newNames)
+	set previewString to getPreviewString(newNames)
+	--Show the user a preview of the new names:
+	set theResult to Â
+		dialogWithButtons("Is this what you wanted?" & return & return & previewString, Â
+			{"Cancel", |GO_BACK|, "Yes"})
+	if button returned of theResult is "Cancel" then
+		error "User cancelled"
+	else if button returned of theResult is |GO_BACK| then
+		return false
+	end if
+	
+	return true
+end userApproves
+
+
+on getPreviewString(newNames)
+	set previewString to ""
+	
+	repeat with i from 1 to count of newNames
+		-- We don't need to see more than 20 lines of new names:
+		if i = 21 then
+			set previewString to previewString & "and so on...."
+			exit repeat
+		end if
+		set newName to replace(|UNIQUESTRING|, "", LI(i, newNames))
+		set previewString to (previewString & newName & return)
+	end repeat
+	
+	return previewString
+end getPreviewString
 
 
 on setFindReplaceParams(params)
 	set params's caseBool to button returned of Â
-		dialog(0, "Should the Find and Replace be case-sensitive?", {"Cancel", "Yes", "No"})
+		dialogWithButtons("Should the Find and Replace be case-sensitive?", {"Cancel", "Yes", "No"})
 	if params's caseBool is "Cancel" then error "Error"
 	
 	set params's searchString to text returned of Â
-		dialog("", "Enter the text to find:", |CANCEL_PROCEED|)
+		dialogWithTextInput("", "Enter the text to find:", |CANCEL_PROCEED|)
 	set params's replaceString to text returned of Â
-		dialog("", "Enter the text to replace it with:", |CANCEL_PROCEED|)
+		dialogWithTextInput("", "Enter the text to replace it with:", |CANCEL_PROCEED|)
 	
 	return params
 end setFindReplaceParams
@@ -157,17 +195,18 @@ end setFindReplaceParams
 
 on setNumberSequentiallyParams(params, userChoice)
 	set params's curN to text returned of Â
-		dialog("001", "Enter a starting number:", |CANCEL_PROCEED|)
+		dialogWithTextInput("001", "Enter a starting number:", |CANCEL_PROCEED|)
 	if userChoice is |NSACN| then
-		set params's attachBeginOrEnd to button returned of dialog(0, Â
-			"Attach at beginning or end of current name?", {"Cancel", "End", "Beginning"})
+		set params's attachBeginOrEnd to button returned of Â
+			dialogWithButtons("Attach at beginning or end of current name?", Â
+				{"Cancel", "End", "Beginning"})
 	end if
 	if userChoice is |NS| or params's attachBeginOrEnd is "Beginning" then
 		set befOrAft to "after"
 	else
 		set befOrAft to "before"
 	end if
-	set params's additionalTxt to text returned of dialog("", Â
+	set params's additionalTxt to text returned of dialogWithTextInput("", Â
 		"Enter any additional text you want placed " & befOrAft & " the number:", Â
 		|CANCEL_PROCEED|)
 	
@@ -179,10 +218,10 @@ on setAddPrefixSuffixParams(params)
 	set listChoice to listChoice({"Prefix", "Suffix", "Both"}, Â
 		"Add a Prefix, Suffix, or Both?", |PROCEED|)
 	if listChoice is "Both" or listChoice is "Prefix" then
-		set params's pfx to text returned of dialog("", "Enter the Prefix:", |CANCEL_PROCEED|)
+		set params's pfx to text returned of dialogWithTextInput("", "Enter the Prefix:", |CANCEL_PROCEED|)
 	end if
 	if listChoice is "Both" or listChoice is "Suffix" then
-		set params's sfx to text returned of dialog("", "Enter the Suffix:", |CANCEL_PROCEED|)
+		set params's sfx to text returned of dialogWithTextInput("", "Enter the Suffix:", |CANCEL_PROCEED|)
 	end if
 	
 	return params
@@ -199,14 +238,15 @@ on setInsertRemoveParams(params)
 		set params's removeStartPosition to getStartPosition()
 		
 		set params's removeNum to text returned of Â
-			dialog("", "Enter the number of characters to remove:", |CANCEL_PROCEED|) as integer
+			dialogWithTextInput("", "Enter the number of characters to remove:", |CANCEL_PROCEED|) Â
+				as integer
 		
 	else if params's listChoice is |INSERT| then
 		set params's insertFromWhere to getStartingFromWhereChoice(params's listChoice)
 		set params's insertStartPosition to getStartPosition()
 		
 		set params's insertTxt to text returned of Â
-			dialog("", "Enter the text to insert:", |CANCEL_PROCEED|)
+			dialogWithTextInput("", "Enter the text to insert:", |CANCEL_PROCEED|)
 	end if
 	
 	return params
@@ -214,19 +254,20 @@ end setInsertRemoveParams
 
 
 on setOrderAlphabeticallyParams(params, userChoice)
-	set params's curN to text returned of dialog("aaa", Â
+	set params's curN to text returned of dialogWithTextInput("aaa", Â
 		"Enter a starting letter combo, including total number of characters desired:", Â
 		|CANCEL_PROCEED|)
 	if userChoice is |OAACN| then
-		set params's attachBeginOrEnd to button returned of dialog(0, Â
-			"Attach at beginning or end of current name?", {"Cancel", "End", "Beginning"})
+		set params's attachBeginOrEnd to button returned of Â
+			dialogWithButtons("Attach at beginning or end of current name?", Â
+				{"Cancel", "End", "Beginning"})
 	end if
 	if userChoice is |OA| or params's attachBeginOrEnd is "Beginning" then
 		set befOrAft to "after"
 	else
 		set befOrAft to "before"
 	end if
-	set params's additionalTxt to text returned of dialog("", Â
+	set params's additionalTxt to text returned of dialogWithTextInput("", Â
 		"Enter any additional text you want placed " & befOrAft & " the letters:", Â
 		|CANCEL_PROCEED|)
 	
@@ -242,54 +283,38 @@ end getStartingFromWhereChoice
 
 on getStartPosition()
 	return text returned of Â
-		dialog("1", "Enter the starting position:", |CANCEL_PROCEED|) as integer
+		dialogWithTextInput("1", "Enter the starting position:", |CANCEL_PROCEED|) as integer
 end getStartPosition
 
 
-on renameItems(selectedItems, userChoice, params)
-	
-	--Convert every item in selectedItems to string paths:
-	repeat with i from 1 to (count of selectedItems)
-		setLI(i, selectedItems, LI(i, selectedItems) as text)
+on get_newNames_newPaths(itemPaths, userChoice, params)
+	--Convert to string paths:
+	repeat with i from 1 to (count of itemPaths)
+		setLI(i, itemPaths, LI(i, itemPaths) as text)
 	end repeat
 	
-	set {modifiedItemsPaths, newNames} to {{}, {}}
+	set {newPaths, newNames} to {{}, {}}
 	
 	--Process each dragged item:
-	repeat with i from 1 to count of selectedItems
+	repeat with i from 1 to count of itemPaths
 		--Create new name string:
-		set newName to getNewName(LI(i, selectedItems), userChoice, params)
+		set newName to getNewName(LI(i, itemPaths), userChoice, params)
 		set end of newNames to newName
-		--Create new path to item with new name:
-		set pathList to explode((LI(i, selectedItems)), ":")
-		if pathList ends with "" then set pathList to LI({1, -2}, pathList)
-		setLI(-1, pathList, newName)
-		set end of modifiedItemsPaths to implode(pathList, ":")
+		set end of newPaths to getNewPath(LI(i, itemPaths), newName)
 	end repeat
-	set {i, previewString} to {1, ""}
-	--Create a string for previewing the new names:
-	repeat with i from 1 to count of newNames
-		if i = 21 then
-			set previewString to previewString & "and so on...."
-			exit repeat
-		end if
-		set previewString to Â
-			previewString & replace(|UNIQUESTRING|, "", LI(i, newNames)) & return
-		set i to (i + 1)
-	end repeat
-	--Show the user a preview of the new names:
-	set theResult to dialog(0, "Is this what you wanted?" & return & return & Â
-		previewString, {"Cancel", "No, Go Back", "Yes"})
-	if button returned of theResult is "Cancel" then return true -- ends script.
-	if button returned of theResult is "No, Go Back" then return false
 	
-	--Do the actual renaming:
-	renameAll(selectedItems, newNames)
+	return {newNames, newPaths}
+end get_newNames_newPaths
+
+
+
+on getNewPath(oldPath, newName)
+	set pathList to explode(oldPath, ":")
+	if pathList ends with "" then set pathList to LI({1, -2}, pathList)
 	
-	--Now remove the unique suffix:
-	removeUniqueStrings(modifiedItemsPaths)
-	return true
-end renameItems
+	setLI(-1, pathList, newName)
+	return implode(pathList, ":")
+end getNewPath
 
 
 --Increments theNum that theItem will be renamed with, and converts it back to text.
@@ -314,8 +339,8 @@ on incrementNum(theNum)
 end incrementNum
 
 
-on getList_name_extension(itemPath)
-	set theName to itemNameWithExt(itemPath)
+on get_theName_theExtension(itemPath)
+	set theName to getNameFromPath(itemPath)
 	set theList to explode(theName, ".")
 	if (count of theList) = 1 then
 		set theExt to ""
@@ -324,7 +349,7 @@ on getList_name_extension(itemPath)
 		set theName to LI({1, -2}, theList) as text
 	end if
 	return {theName, theExt}
-end getList_name_extension
+end get_theName_theExtension
 
 
 on getTail(numChars, str)
@@ -441,17 +466,20 @@ on incrementAlphabet(theChars)
 end incrementAlphabet
 
 
-on dialog(defaultTxt, theMessage, theButtons)
+on dialogWithTextInput(defaultTxt, theMessage, theButtons)
 	set lastButton to count of theButtons
 	
-	if defaultTxt = 0 then
-		return display dialog theMessage with title "BatchRenamer" buttons theButtons Â
-			default button lastButton
-	else
-		return display dialog theMessage with title "BatchRenamer" default answer Â
-			defaultTxt buttons theButtons default button lastButton
-	end if
-end dialog
+	return display dialog theMessage with title "BatchRenamer" default answer Â
+		defaultTxt buttons theButtons default button lastButton
+end dialogWithTextInput
+
+
+on dialogWithButtons(theMessage, theButtons)
+	set lastButton to count of theButtons
+	
+	return display dialog theMessage with title "BatchRenamer" buttons theButtons Â
+		default button lastButton
+end dialogWithButtons
 
 
 on listChoice(theList, thePrompt, okButton)
@@ -461,40 +489,46 @@ end listChoice
 
 
 
-on removeUniqueStrings(renamedItems)
-	repeat with i from 1 to (count of renamedItems)
-		set theName to Â
-			LI(-1, explode(LI(i, renamedItems) as string, ":")) --extracts item name from path.
+on removeUniqueStrings(renamedItemPaths)
+	repeat with i from 1 to (count of renamedItemPaths)
+		set theName to getNameFromPath(LI(i, renamedItemPaths))
+		set newName to replace(|UNIQUESTRING|, "", theName)
 		
-		--if theName is "" then the item is a folder and the path must have ended with a colon:
-		if theName is "" then set theName to LI(-2, explode(LI(i, renamedItems) as string, ":"))
-		set newName to replace(|UNIQUESTRING|, "", theName) --removes |UNIQUESTRING|.
-		tell application "System Events" to set name of item (my LI(i, renamedItems)) to newName
+		tell application "System Events" to Â
+			set name of item (my LI(i, renamedItemPaths)) to newName
 	end repeat
 end removeUniqueStrings
 
 
---theItem must be a colon-delimited path string. 
+--itemPath must be a colon-delimited path string. 
 --Example: "Macintosh HD:Users:Username:Desktop:Filename.txt"
---Returns theItem's name (without the full path) as string.
-on itemNameWithExt(theItem)
-	set theParts to explode(theItem, ":")
+on getNameFromPath(itemPath)
+	set theParts to explode(itemPath, ":")
 	if theParts ends with "" then set theParts to LI({1, -2}, theParts)
 	return LI(-1, theParts) as text
-end itemNameWithExt
+end getNameFromPath
 
 
-on renameAll(theItems, theNames)
-	repeat with i from 1 to count of theItems
+on renameAll(itemPaths, newNames, renamedPaths)
+	repeat with i from 1 to count of itemPaths
 		tell application "System Events" to set name of item Â
-			(my LI(i, theItems)) to my LI(i, theNames)
+			(my LI(i, itemPaths)) to my LI(i, newNames)
+	end repeat
+	
+	--Remove unique string from each item name:
+	repeat with i from 1 to (count of renamedPaths)
+		set theName to getNameFromPath(LI(i, renamedPaths))
+		set newName to replace(|UNIQUESTRING|, "", theName)
+		
+		tell application "System Events" to Â
+			set name of item (my LI(i, renamedPaths)) to newName
 	end repeat
 end renameAll
 
 
 
 on getNewName(itemPath, userChoice, params)
-	set {theName, theExt} to getList_name_extension(itemPath)
+	set {theName, theExt} to get_theName_theExtension(itemPath)
 	
 	if userChoice is |FR| then
 		set newName to getNewName_FR(params, theName)
