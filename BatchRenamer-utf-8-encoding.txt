@@ -35,7 +35,7 @@ the app.
 property params : {}
 
 
---global constants
+--all global constants (follows naming convention of:  |CONSTANT| )
 
 -- initial choices
 global |FR|, |NS|, |NSACN|, |OA|, |OAACN|, |APS|, |IRC|, |CE|, |CAPITAL|, |CHANGECASE|
@@ -44,8 +44,8 @@ global |MAIN_CHOICES| -- list containing initial choices.
 global |INSERT|, |REMOVE| -- 2 choices
 global |INSERT_REMOVE| -- list containing 2 choices
 
-global |LEFT|, |RIGHT|
-global |LEFT_RIGHT|
+global |LEFT|, |RIGHT|  -- 2 choices
+global |LEFT_RIGHT|  -- list containing 2 choices
 
 global |PROCEED|
 global |CANCEL_PROCEED|
@@ -116,7 +116,7 @@ on setGlobalConstants()
 	set |CANCEL_PROCEED| to {"Cancel", |PROCEED|}
 	set |GO_BACK| to "No, Go Back"
 	
-	set |UNIQUESTRING| to "¯&¯*¯#¯%¯"
+	set |UNIQUESTRING| to "Ç◊¯&¯*¯#¯%¯"
 end setGlobalConstants
 
 
