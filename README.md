@@ -2,7 +2,7 @@
 Renames batch of items in Mac Finder (anything that can be renamed).  
 This script can be saved as an application, or be run as is.
 
-
+[demo-video](https://www.youtube.com/watch?v=xvkEkzIXNMg)
 
 ## How to use
 
