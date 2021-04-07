@@ -2,7 +2,7 @@
 Renames batch of items in Mac Finder (anything that can be renamed).  
 This script can be saved as an application, or be run as is.
 
-<iframe width="787" height="492" src="https://www.youtube.com/embed/xvkEkzIXNMg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 
 ## How to use
 
